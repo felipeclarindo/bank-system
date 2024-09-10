@@ -1,5 +1,5 @@
 from .exceptions import OperationFailed, ClientNotFound, InsuficientFunds
-from datetime import time
+from datetime import datetime
 
 
 def _depositar(cliente: dict, valor_deposito: float) -> bool:
@@ -7,9 +7,14 @@ def _depositar(cliente: dict, valor_deposito: float) -> bool:
         if cliente:
             if "saldo" in cliente:
                 saldo = cliente.get("saldo")
-                cliente.update("saldo", saldo + valor_deposito)
+                if valor_deposito > 0:
+                    saldo += valor_deposito
+                else:
+                    raise OperationFailed("O valor de deposito minimo é 0.1")
+                cliente.update({"saldo": saldo})
                 extrato = cliente.get("extrato")
-                extrato.append(f"Depositado: {valor_deposito} as {time()}")
+                data = datetime.now().timetuple()
+                extrato.append(f"Depositado: R${valor_deposito:.2f} as {data.tm_hour if len(str(data.tm_hour)) > 1  else f"0{data.tm_hour}"}:{data.tm_min if len(str(data.tm_min)) > 1 else f"0"}:{data.tm_sec if len(str(data.tm_sec).strip()) > 1 else f"0{data.tm_sec}"} dia {data.tm_mday if len(str(data.tm_mday).strip()) > 1 else f"0{data.tm_mday}"}:{data.tm_mon if len(str(data.tm_mon).strip()) > 1 else f"0{data.tm_mon}"}:{data.tm_year if len(str(data.tm_year)) > 1 else f"0{data.tm_year}"} ")
                 return True
             else:
                 raise OperationFailed("Saldo não encontrado.")
@@ -28,7 +33,10 @@ def _sacar(cliente: dict, valor_saque: float) -> bool:
             if "saldo" in cliente:
                 saldo = cliente.get("saldo")
                 if saldo >= valor_saque:
-                    cliente.update("saldo", saldo - valor_saque)
+                    cliente.update({"saldo": valor_saque})
+                    extrato = cliente.get("extrato")
+                    data = datetime.now().timetuple()
+                    extrato.append(f"Sacando: R${valor_saque:.2f} as {data.tm_hour if len(str(data.tm_hour)) > 1  else f"0{data.tm_hour}"}:{data.tm_min if len(str(data.tm_min)) > 1 else f"0"}:{data.tm_sec if len(str(data.tm_sec).strip()) > 1 else f"0{data.tm_sec}"} dia {data.tm_mday if len(str(data.tm_mday).strip()) > 1 else f"0{data.tm_mday}"}:{data.tm_mon if len(str(data.tm_mon).strip()) > 1 else f"0{data.tm_mon}"}:{data.tm_year if len(str(data.tm_year)) > 1 else f"0{data.tm_year}"} ")
                     return True
                 else:
                     raise InsuficientFunds("Saldo insuficiente.")
