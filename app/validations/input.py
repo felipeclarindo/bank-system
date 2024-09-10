@@ -1,14 +1,18 @@
 from ..modules.exceptions import ValueInvalid, ValueIsEmpty
 
-def validate_value(value:float, option:str) -> bool:
+def validate_value(value:str, option:str) -> bool:
     try:
-        if value:
-            if value > 0:
+        if value.replace(".", "").isdigit():
+            if float(value) > 0:
                 return True
-            elif value < 0:
-                raise ValueInvalid("O valor não pode ser negativo.")
             else:
-                raise ValueIsEmpty(f"O valor mínimo de {option.lower()} é R$ 0.1.")
+                raise ValueInvalid(f"O valor minimo para {option.lower()} é R$0.1")
+        else:
+            raise ValueError("O valor precisa ser um número.")
+    except ValueIsEmpty as e:
+        print(f"Erro de Captura: {e}")
     except ValueInvalid as e:
         print(f"Erro de valor: {e}.")
+    except ValueError as e:
+        print(f"Valor Ínvalido: {e}")
     return False
